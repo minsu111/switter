@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import { dbService, storageService } from "fbase";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 
 const Sweet = ({ sweetObj, isOwner }) => {
   const [editing, setEditing] = useState(false);
   const [newSweet, setNewSweet] = useState(sweetObj.text);
   const onDeleteClick = async () => {
-    const ok = window.confirm("Are you sure you want to delete this sweet?");
+    const ok = window.confirm("정말 삭제하시겠습니까?");
     if (ok) {
       await dbService.doc(`sweets/${sweetObj.id}`).delete();
-      await storageService.refFromURL(sweetObj.attachmentUrl).delete();
+      if (sweetObj.attachmentUrl) {
+        await storageService.refFromURL(sweetObj.attachmentUrl).delete();
+      }
     }
   };
   const toggleEditing = () => setEditing((prev) => !prev);
@@ -26,32 +30,38 @@ const Sweet = ({ sweetObj, isOwner }) => {
     setNewSweet(value);
   };
   return (
-    <div>
+    <div className="sweet">
       {editing ? (
         <>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className="container sweetEdit">
             <input
               type="text"
               placeholder="Edit your sweet"
               value={newSweet}
               required
+              autoFocus
               onChange={onChange}
+              className="formInput"
             />
-            <input type="submit" value="Update Sweet" />
+            <input type="submit" value="Update Sweet" className="formBtn" />
           </form>
-          <button onClick={toggleEditing}>Cancel</button>
+          <span onClick={toggleEditing} className="formBtn cancelBtn">
+            Cancel
+          </span>
         </>
       ) : (
         <>
           <h4>{sweetObj.text}</h4>
-          {sweetObj.attachmentUrl && (
-            <img src={sweetObj.attachmentUrl} width="50px" height="50px" />
-          )}
+          {sweetObj.attachmentUrl && <img src={sweetObj.attachmentUrl} />}
           {isOwner && (
-            <>
-              <button onClick={onDeleteClick}>Delete Nweet</button>
-              <button onClick={toggleEditing}>Edit Nweet</button>
-            </>
+            <div className="sweet__actions">
+              <span onClick={onDeleteClick}>
+                <FontAwesomeIcon icon={faTrash} color="#979798" />
+              </span>
+              <span onClick={toggleEditing}>
+                <FontAwesomeIcon icon={faPencilAlt} color="#979798" />
+              </span>
+            </div>
           )}
         </>
       )}
